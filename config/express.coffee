@@ -3,6 +3,6 @@ config = require('./init')
 
 module.exports = (db) ->
   app = express();
-  model = require '../models/checkin.model'
-  routes = require('../routes/checkin.routes')(app)
+  require '../models/checkin'
+  require('../routes/checkin')(app)
   return app

@@ -1,9 +1,7 @@
-'use strict';
-
 express = require('express')
-config = require('./config/init')
 mongoose = require('mongoose')
 chalk = require('chalk')
+config = require('./config/init')
 
 db = mongoose.connect config.db, (err) ->
   if err?

@@ -2,97 +2,120 @@ sinon = require 'sinon'
 should = require 'should'
 mongoose = require 'mongoose'
 
-req =
-  query:
-    username: 'Anton'
-    location: 'Taganrog'
 res =
+  status: () ->
+    return res
   send: () ->
-
 
 Schema = mongoose.model('Checkin', {})
 Checkin = mongoose.model('Checkin')
-checkinController = require '../controllers/checkin.controller'
-
+checkinController = require '../controllers/checkin'
 
 describe 'Controller', () ->
 
   beforeEach () ->
     @sandbox = sinon.sandbox.create()
-    @sandbox.spy(checkinController, 'create')
-    @sandbox.spy(checkinController, 'search')
-    @sandbox.stub(res, 'send')
-    @sandbox.stub(Checkin, 'create')
-    @sandbox.stub(Checkin, 'find')
+    @sandbox.spy(res, 'send')
 
   afterEach () ->
     @sandbox.restore()
 
-  context 'Create checkins', () ->
-    it 'should return error message if input data is empty', () ->
-      checkinController.create({query: {}}, res)
-      args = res.send.args[0]
-      args[0].should.be.String().and.eql('Empty data')
+  describe 'Create checkins', () ->
+    beforeEach () ->
+      @sandbox.stub(Checkin, 'create')
 
-    it 'should return error message if username empty', () ->
-      checkinController.create({query: {location:'NY'}}, res)
-      args = res.send.args[0]
-      args[0].should.be.String().and.eql('Empty username')
+    context 'if input data is empty', () ->
+      it 'should return error message', () ->
+        req = {query: {}}
+        checkinController.create(req, res)
+        args = res.send.args[0]
+        args[0].should.be.String().and.eql('Empty data')
 
-    it 'should return error message if location empty', () ->
-      checkinController.create({query: {username:'Gandalf'}}, res)
-      args = res.send.args[0]
-      args[0].should.be.String().and.eql('Empty location')
+    context 'if username empty', () ->
+      it 'should return error message', () ->
+        req = {query: {location:'NY'}}
+        checkinController.create(req, res)
+        args = res.send.args[0]
+        args[0].should.be.String().and.eql('Empty username')
+
+    context 'if location empty', () ->
+      it 'should return error message', () ->
+        req = {query: {username:'Gandalf'}}
+        checkinController.create(req, res)
+        args = res.send.args[0]
+        args[0].should.be.String().and.eql('Empty location')
 
     it 'should call Checkin.create with correct parameters', () ->
+      req = {query: {username: 'Anton', location: 'Taganrog'}}
       checkinController.create(req, res)
       args = Checkin.create.args[0]
       args[0].should.be.Object().and.eql({username: 'Anton', location: 'Taganrog'})
       args[1].should.be.Function()
 
-    it 'should return correct result if Checkin.create work without error', () ->
-      Checkin.create.yields(null, {"_id": "Obj123", "username": "Anton", "location": "Taganrog"})
-      checkinController.create(req, res)
-      args = res.send.args[0]
-      args[0].should.be.Object().and.eql({"_id": "Obj123", "username": "Anton", "location": "Taganrog"})
+    context 'if Checkin.create work without error', () ->
+      it 'should return correct result', () ->
+        user = {"_id": "Obj123", "username": "Anton", "location": "Taganrog"}
+        req = {query: {username: 'Anton', location: 'Taganrog'}}
+        Checkin.create.yields(null, user)
+        checkinController.create(req, res)
+        args = res.send.args[0]
+        args[0].should.be.Object().and.eql(user)
 
-    it 'should return error if Checkin.create return error', () ->
-      Checkin.create.yields('Achtung!', {})
-      checkinController.create(req, res)
-      args = res.send.args[0]
-      args[0].should.be.String().and.eql('Achtung!')
+    context 'if Checkin.create return error', () ->
+      it 'should return error', () ->
+        req = {query: {username: 'Anton', location: 'Taganrog'}}
+        Checkin.create.yields('Achtung!', {})
+        checkinController.create(req, res)
+        args = res.send.args[0]
+        args[0].should.be.String().and.eql('Achtung!')
 
-  context 'Search checkins', () ->
-    it 'should return error message if search query is empty', () ->
-      checkinController.search({query: {}}, res)
-      args = res.send.args[0]
-      args[0].should.be.String().and.eql('Empty query. Please, use one parameter for search.')
+  describe 'Search checkins', () ->
+    beforeEach () ->
+      @sandbox.stub(Checkin, 'find')
 
-    it 'should return error message if search query contain username and location', () ->
-      checkinController.search(req, res)
-      args = res.send.args[0]
-      args[0].should.be.String().and.eql('Invalid query. Please, use correct parameter for search.')
+    context 'if search query is empty', () ->
+      it 'should return error message', () ->
+        req = {query: {}}
+        checkinController.search(req, res)
+        args = res.send.args[0]
+        args[0].should.be.String().and.eql('Empty query. Please, use one parameter for search.')
 
-    it 'should call Checkin.find with correct parameter if search do by location', () ->
-      checkinController.search({query: {location:'NY'}}, res)
-      args = Checkin.find.args[0]
-      args[0].should.be.Object().and.eql({location: 'NY'})
-      args[1].should.be.Function()
+    context 'if search query contain username and location', () ->
+      it 'should return error message', () ->
+        req = {query: {username: 'Anton', location: 'Taganrog'}}
+        checkinController.search(req, res)
+        args = res.send.args[0]
+        args[0].should.be.String().and.eql('Invalid query. Please, use one parameter for search.')
 
-    it 'should call Checkin.find with correct parameter if search do by username', () ->
-      checkinController.search({query: {username:'Gabriel'}}, res)
-      args = Checkin.find.args[0]
-      args[0].should.be.Object().and.eql({username: 'Gabriel'})
-      args[1].should.be.Function()
+    context 'if search do by location', () ->
+      it 'should call Checkin.find with correct parameter', () ->
+        req = {query: {location:'NY'}}
+        checkinController.search(req, res)
+        args = Checkin.find.args[0]
+        args[0].should.be.Object().and.eql({location: 'NY'})
+        args[1].should.be.Function()
 
-    it 'should return correct results if Checkin.find work without error', () ->
-      Checkin.find.yields(null, [{"_id": "Obj123", "username": "Anton", "location": "Taganrog"}])
-      checkinController.search({query: {username:'Anton'}}, res)
-      args = res.send.args[0]
-      args[0].should.be.Array().and.eql([{"_id": "Obj123", "username": "Anton", "location": "Taganrog"}])
+    context 'if search do by username', () ->
+      it 'should call Checkin.find with correct parameter', () ->
+        req = {query: {username:'Gabriel'}}
+        checkinController.search(req, res)
+        args = Checkin.find.args[0]
+        args[0].should.be.Object().and.eql({username: 'Gabriel'})
+        args[1].should.be.Function()
 
-    it 'should return error if Checkin.find return error', () ->
-      Checkin.find.yields('Achtung!', [])
-      checkinController.search({query: {username:'Anton'}}, res)
-      args = res.send.args[0]
-      args[0].should.be.String().and.eql('Achtung!')
+    context 'if Checkin.find work without error', () ->
+      it 'should return correct results', () ->
+        user = {"_id": "Obj123", "username": "Anton", "location": "Taganrog"}
+        Checkin.find.yields(null, [user])
+        req = {query: {username:'Anton'}}
+        checkinController.search(req, res)
+        args = res.send.args[0]
+        args[0].should.be.Array().and.eql([user])
+
+    context 'if Checkin.find return error', () ->
+      it 'should return error', () ->
+        req = {query: {username:'Anton'}}
+        Checkin.find.yields('Achtung!', [])
+        checkinController.search(req, res)
+        args = res.send.args[0]
+        args[0].should.be.String().and.eql('Achtung!')

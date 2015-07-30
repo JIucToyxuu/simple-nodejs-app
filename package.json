@@ -4,7 +4,7 @@
   "description": "Simple NodeJS app",
   "main": "server.coffee",
   "scripts": {
-    "start": "node server.coffee",
+    "start": "coffee server.coffee",
     "test": "mocha && ./node_modules/.bin/istanbul report",
     "show-cover": "google-chrome './coverage/lcov-report/index.html'"
   },

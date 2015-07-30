@@ -1,4 +1,4 @@
-checkins = require('../controllers/checkin.controller')
+checkins = require('../controllers/checkin')
 
 module.exports = (app) ->
   app.get '/checkin', (req, res) ->
