@@ -1,4 +1,4 @@
-# sipmle-nodejs-app
+# simple-nodejs-app
 This repository been create for 'Starter Task'
 
 ## Installation
